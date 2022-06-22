@@ -1,10 +1,10 @@
-**WARNING**: this is an early phase POC and under active development it is
-             **EXPERIMENTAL** and should not be used except by those developing
-             and maintaining it. We'll have more information about timelines
-             for releases soon. Please check in with us on the [#kong][ch] on
-             Kubernetes Slack or open a [discussion][discuss] if you have
-             questions, want to contribute, or just want to chat.
+**WARNING**: This project is under active development and is currently considered **EXPERIMENTAL**.
+             For information about timelines for initial releases please see our [milestones][mst].
+             Please check in with us on the [#kong][ch] on Kubernetes Slack or open a
+             [discussion][discuss] if you have questions, want to contribute, or just want to chat
+             about the project.
 
+[mst]:https://github.com/Kong/gateway-operator/milestones
 [ch]:https://kubernetes.slack.com/messages/kong
 [discuss]:https://github.com/kong/gateway-operator/discussions
 
