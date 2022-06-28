@@ -32,7 +32,7 @@ kubectl -n kong-system wait --for=condition=Available=true deployment/gateway-op
 
 #### Usage
 
-After deployment usage is driven primarily via the [Gateway][gwapis] resource.
+After deployment usage is driven primarily via the [Gateway][gwapi] resource.
 You can deploy a `Gateway` resource to the cluster which will result in the
 underlying control-plane (the [Kong Kubernetes Ingress Controller][kic]) and
 the data-plane (the [Kong Gateway][kong-ce]).
@@ -92,6 +92,7 @@ configuration. Create `Ingress`, `HTTPRoute` and other resources to start
 routing traffic to your applications. See the [Ingress Controller
 Guides][kic-guides] for more information).
 
+[gwapi]:https://github.com/kubernetes-sigs/gateway-api
 [kic]:https://github.com/kong/kubernetes-ingress-controller
 [kong-ce]:https://github.com/kong/kong
 [kic-guides]:https://docs.konghq.com/kubernetes-ingress-controller/latest/guides/overview/
