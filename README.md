@@ -34,7 +34,7 @@ kubectl kustomize https://github.com/kong/gateway-operator/config/default | kube
 Optionally, you can wait for the operator with:
 
 ```console
-kubectl -n kong-system wait --for=condition=Available=true deployment/gateway-operator-controller-manager
+kubectl -n kong-system wait --for=condition=Available=true --timeout=120s deployment/gateway-operator-controller-manager
 ```
 
 [gwapi]:https://github.com/kubernetes-sigs/gateway-api
