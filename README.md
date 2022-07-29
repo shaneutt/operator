@@ -18,6 +18,13 @@ A [Kubernetes Operator][k8soperator] for the [Kong Gateway][kong].
 
 ### Deployment
 
+Prior to deployment, Kong and [Gateway API][gwapi] CRDs need to be deployed:
+
+```console
+kubectl kustomize https://github.com/Kong/kubernetes-ingress-controller/config/crd | kubectl apply -f -
+kubectl kustomize https://github.com/kubernetes-sigs/gateway-api/config/crd | kubectl apply -f -
+```
+
 Deploy the operator with the following one-liner:
 
 ```console
@@ -29,6 +36,8 @@ Optionally, you can wait for the operator with:
 ```console
 kubectl -n kong-system wait --for=condition=Available=true deployment/gateway-operator-controller-manager
 ```
+
+[gwapi]:https://github.com/kubernetes-sigs/gateway-api
 
 #### Usage
 
