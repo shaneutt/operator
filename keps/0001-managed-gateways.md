@@ -1,6 +1,6 @@
 ---
 title: Managed Gateways
-status: provisional
+status: implementable
 ---
 
 # Managed Gateways
@@ -148,7 +148,7 @@ e2e tests using a local system Kubernetes deployment like [Kubernetes in Docker
 The following milestones are considered prerequisites for a generally available
 `v1` release of the Gateway Operator:
 
-#### Milestone - Managed Gateway Fundamentals
+#### Milestone - Basic Install
 
 This milestone covers the basic functionality and automation needed for a
 simple, traditional edge proxy deployment with Kubernetes API support which is
