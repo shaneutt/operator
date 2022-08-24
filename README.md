@@ -75,7 +75,7 @@ spec:
 Wait for the `Gateway` to be `Ready`:
 
 ```console
-kubectl -n kong-system wait --for=condition=Available=true deployment/gateway-operator-controller-manager
+kubectl wait --for=condition=Ready=true gateways.gateway.networking.k8s.io/kong
 ```
 
 Once `Ready` you'll be able to receive the default IP address of the `Gateway`:
