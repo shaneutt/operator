@@ -106,6 +106,104 @@ Guides][kic-guides] for more information).
 [kong-ce]:https://github.com/kong/kong
 [kic-guides]:https://docs.konghq.com/kubernetes-ingress-controller/latest/guides/overview/
 
+#### Configuring Gateways
+
+A `Gateway` resource has subcomponents such as a `ControlPlane` and a
+`DataPlane` which are created and managed on its behalf. At a deeper technical
+level, `ControlPlane` corresponds with the [Kong Kubernetes Ingress
+Controller (KIC)][kic] and `DataPlane` corresponds with the [Kong Gateway][gw].
+
+While not required for basic usage, it is possible to provide configuration for
+these subcomponents using the `GatewayConfiguration` API. That configuration
+can include the container image and image version to use for the subcomponents,
+as well as environment and volume mount overrides that will be passed down to
+`Pods` created for that component. For example:
+
+```yaml
+kind: GatewayConfiguration
+apiVersion: gateway-operator.konghq.com/v1alpha1
+metadata:
+  name: kong
+  namespace: default
+spec:
+  dataPlaneDeploymentOptions:
+    containerImage: kong/kubernetes-ingress-controller
+    version: 2.4.2
+    env:
+    - name: TEST_VAR
+      value: TEST_VAL
+  controlPlaneDeploymentOptions:
+    containerImage: kong/kong
+    version: 2.8.0
+    env:
+    - name: TEST_VAR
+      value: TEST_VAL
+```
+
+Configurations like the above can be created on the API but wont be active
+until referenced by a `GatewayClass`:
+
+```yaml
+kind: GatewayClass
+apiVersion: gateway.networking.k8s.io/v1alpha2
+metadata:
+  name: kong
+spec:
+  controllerName: konghq.com/gateway-operator
+  parametersRef:
+    group: gateway-operator.konghq.com
+    kind: GatewayConfiguration
+    name: kong
+    namespace: default
+```
+
+With the `parametersRef` in the above `GatewayClass` being used to attach the
+`GatewayConfiguration`, that configuration will start applying to all `Gateway`
+resources created for that class, and will retroactively apply to any `Gateway`
+resources previously created.
+
+[kic]:https://github.com/kong/kubernetes-ingress-controller
+[gw]:https://github.com/kong/kong
+
+#### Gateway upgrades/downgrades
+
+The `GatewayConfiguration` API can be used to provide the image and the image
+version desired for either the `ControlPlane` or `DataPlane` component of the
+`Gateway` e.g.:
+
+```yaml
+kind: GatewayConfiguration
+apiVersion: gateway-operator.konghq.com/v1alpha1
+metadata:
+  name: kong
+  namespace: default
+spec:
+  dataPlaneDeploymentOptions:
+    containerImage: kong/kong
+    version: 2.7.0
+  controlPlaneDeploymentOptions:
+    containerImage: kong/kubernetes-ingress-controller
+    version: 2.4.2
+```
+
+The above configuration will deploy all `DataPlane` resources connected to the
+`GatewayConfiguration` (by way of `GatewayClass`) using `kong/kong:2.7.0` and
+any `ControlPlane` will be deployed with
+`kong/kubernetes-ingress-controller:2.4.2`.
+
+Given the above a manual upgrade or downgrade can be performed simply by
+changing the version. For example: assuming that at least one `Gateway` is
+currently deployed and running using the above `GatewayConfiguration`, an
+upgrade could be performed by running the following:
+
+```console
+kubectl edit gatewayconfiguration kong
+```
+
+And updating the `dataPlaneDeploymentOptions.version` to `2.8.0`. The result
+will be a replacement `Pod` will roll out with the new version and once healthy
+the old `Pod` will be terminated.
+
 ### Usage with Kong enterprise as dataplane
 
 You can use Kong enterprise as the dataplane by doing as follows:
