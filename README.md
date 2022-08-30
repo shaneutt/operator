@@ -39,7 +39,7 @@ kubectl -n kong-system wait --for=condition=Available=true --timeout=120s deploy
 
 [gwapi]:https://github.com/kubernetes-sigs/gateway-api
 
-#### Usage
+### Usage
 
 After deployment usage is driven primarily via the [Gateway][gwapi] resource.
 You can deploy a `Gateway` resource to the cluster which will result in the
@@ -105,6 +105,91 @@ Guides][kic-guides] for more information).
 [kic]:https://github.com/kong/kubernetes-ingress-controller
 [kong-ce]:https://github.com/kong/kong
 [kic-guides]:https://docs.konghq.com/kubernetes-ingress-controller/latest/guides/overview/
+
+### Usage with Kong enterprise as dataplane
+
+You can use Kong enterprise as the dataplane by doing as follows:
+
+1. Create a secret with the Kong license in the namespace that you intend to use for deploying the gateway.
+
+    ```console
+    kubectl create secret generic kong-enterprise-license --from-file=license=<license-file> -n <your-namespace>
+    ```
+
+2. Create a `GatewayConfiguration` specifying the enterprise container image and the environment variable referencing the license secret. The operator will use the image and the environment variable specified in the `GatewayConfiguration` to customize the dataplane. As the result, the dataplane will use `kong/kong-gateway:2.8` as the image and mount the license secret.
+
+    ```yaml
+    kind: GatewayConfiguration
+    apiVersion: gateway-operator.konghq.com/v1alpha1
+    metadata:
+      name: kong
+      namespace: <your-namespace>
+    spec:
+      dataPlaneDeploymentOptions:
+        containerImage: kong/kong-gateway:2.8
+        env:
+        - name: KONG_LICENSE_DATA
+          valueFrom:
+            secretKeyRef:
+              key: license
+              name: kong-enterprise-license
+    ```
+
+3. Create a `GatewayClass` that references the `GatewayConfiguration` above.
+
+    ```yaml
+    kind: GatewayClass
+    apiVersion: gateway.networking.k8s.io/v1alpha2
+    metadata:
+      name: kong
+    spec:
+      controllerName: konghq.com/gateway-operator
+      parametersRef:
+        group: gateway-operator.konghq.com
+        kind: GatewayConfiguration
+        name: kong
+        namespace: <your-namespace>
+    ```
+
+4. And finally create a Gateway that uses the `GatewayClass` above:
+
+    ```yaml
+    kind: Gateway
+    apiVersion: gateway.networking.k8s.io/v1alpha2
+    metadata:
+      name: kong
+      namespace: <your-namespace>
+    spec:
+      gatewayClassName: kong
+      listeners:
+      - name: http
+        protocol: HTTP
+        port: 80
+    ```
+
+5. Wait for the `Gateway` to be `Ready`:
+
+    ```console
+    kubectl wait --for=condition=Ready=true gateways.gateway.networking.k8s.io/kong
+    ```
+
+6. Check that the dataplane is using the enterprise image:
+
+    ```console
+    $ kubectl get deployment -l konghq.com/gateway-operator=dataplane -o jsonpath='{.items[0].spec.template.spec.containers[0].image}'
+
+    kong/kong-gateway:2.8
+    ```
+
+7. A log message should describe the status of the provided license. Check it through:
+
+    ```console
+    $ kubectl logs $(kubectl get po -l app=$(kubectl get dataplane -o=jsonpath='{.items[0].metadata.name}') -o=jsonpath="{.items[0].metadata.name}") | grep license_helpers.lua
+
+    2022/08/29 10:50:55 [error] 2111#0: *8 [lua] license_helpers.lua:194: log_license_state(): The Kong Enterprise license will expire on 2022-09-20. Please contact <support@konghq.com> to renew your license., context: ngx.timer
+    ```
+
+> **Note**: the license secret, the `GatewayConfiguration`, and the `Gateway` MUST be created in the same namespace.
 
 ### Seeking Help
 
