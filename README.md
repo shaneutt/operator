@@ -28,7 +28,7 @@ kubectl kustomize https://github.com/kubernetes-sigs/gateway-api/config/crd | ku
 Deploy the operator with the following one-liner:
 
 ```console
-kubectl kustomize https://github.com/kong/gateway-operator/config/default | kubectl apply -f -
+kubectl kustomize https://github.com/kong/gateway-operator/config/default?submodules=false | kubectl apply -f -
 ```
 
 Optionally, you can wait for the operator with:
